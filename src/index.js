@@ -33,8 +33,8 @@ const commands = [
         .setDescription('Name for the emoji')
         .setRequired(true))
     .addStringOption(option =>
-      option.setName('emoji_id')
-        .setDescription('The emoji ID')
+      option.setName('emoji')
+        .setDescription('Paste the emoji here or provide its ID')
         .setRequired(true))
     .setDefaultMemberPermissions(0),
   
@@ -137,30 +137,22 @@ async function main() {
 
 async function handleHelp(interaction) {
   const helpEmbed = createEmbed({
-    title: 'Rena - Emoji & Sticker Thief',
-    description: 'A powerful bot for stealing emojis and stickers from other servers!',
+    title: 'Rena',
+    description: 'Transfer emojis and stickers between servers',
     fields: [
       {
-        name: 'Emoji Commands',
-        value: '`/stealemojis <server_id>`\nSteal all emojis from another server',
+        name: 'Commands',
+        value: '`/stealemojis <server_id>` — Transfer all emojis from another server\n' +
+               '`/stealstickers <server_id>` — Transfer all stickers from another server\n' +
+               '`/ping` — Check bot latency\n' +
+               '`/help` — Show this message',
         inline: false
       },
       {
-        name: 'Sticker Commands',
-        value: '`/stealstickers <server_id>`\nSteal all stickers from another server',
-        inline: false
-      },
-      {
-        name: 'Utility',
-        value: '`/help` - Show this help message\n`/ping` - Check bot latency',
-        inline: false
-      },
-      {
-        name: 'Notes',
-        value: '• You need **Manage Expressions** permission to use steal commands\n' +
-               '• The bot needs **Manage Expressions** permission in both servers\n' +
-               '• The bot must be in both the source and target servers\n' +
-               '• Emoji limits depend on server boost level',
+        name: 'Requirements',
+        value: '• **Manage Expressions** permission required for both you and the bot\n' +
+               '• Bot must be present in both source and destination servers\n' +
+               '• Transfer limits depend on server boost level',
         inline: false
       }
     ],

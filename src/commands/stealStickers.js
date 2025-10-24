@@ -53,8 +53,8 @@ export async function handleStealStickers(interaction) {
 
     await interaction.editReply({
       embeds: [createEmbed({
-        title: `${CONFIG.BOT_EMOJIS.LOADING} Stealing Stickers`,
-        description: `Fetching stickers from **${sourceGuild.name}**...\nFound ${stickers.size} stickers!`,
+        title: 'Processing',
+        description: `Fetching stickers from **${sourceGuild.name}**\nFound ${stickers.size} stickers`,
         timestamp: true
       })]
     });
@@ -84,8 +84,8 @@ export async function handleStealStickers(interaction) {
         if (successCount % 3 === 0 || successCount === 1) {
           await interaction.editReply({
             embeds: [createEmbed({
-              title: `${CONFIG.BOT_EMOJIS.LOADING} Stealing Stickers`,
-              description: `Progress: ${successCount}/${Math.min(stickers.size, availableSlots)} stickers stolen...`,
+              title: 'Processing',
+              description: `Progress: ${successCount}/${Math.min(stickers.size, availableSlots)} stickers transferred`,
               timestamp: true
             })]
           });
@@ -98,14 +98,14 @@ export async function handleStealStickers(interaction) {
           errors.push(`Sticker limit reached`);
           break;
         } else {
-          errors.push(`Failed to steal ${sticker.name}: ${error.message}`);
+          errors.push(`Failed: ${sticker.name}`);
         }
       }
     }
 
     const resultEmbed = createEmbed({
-      title: `${CONFIG.BOT_EMOJIS.SUCCESS} Sticker Theft Complete`,
-      description: `Successfully stolen **${successCount}** stickers from **${sourceGuild.name}**!`,
+      title: 'Transfer Complete',
+      description: `Successfully transferred **${successCount}** stickers from **${sourceGuild.name}**`,
       fields: [
         { name: 'Success', value: `${successCount}`, inline: true },
         { name: 'Failed', value: `${failCount}`, inline: true },

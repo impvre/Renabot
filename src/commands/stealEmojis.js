@@ -54,8 +54,8 @@ export async function handleStealEmojis(interaction) {
 
     await interaction.editReply({
       embeds: [createEmbed({
-        title: `${CONFIG.BOT_EMOJIS.LOADING} Stealing Emojis`,
-        description: `Fetching emojis from **${sourceGuild.name}**...\nFound ${emojis.size} emojis!`,
+        title: 'Processing',
+        description: `Fetching emojis from **${sourceGuild.name}**\nFound ${emojis.size} emojis`,
         timestamp: true
       })]
     });
@@ -80,8 +80,8 @@ export async function handleStealEmojis(interaction) {
         if (successCount % 10 === 0) {
           await interaction.editReply({
             embeds: [createEmbed({
-              title: `${CONFIG.BOT_EMOJIS.LOADING} Stealing Emojis`,
-              description: `Progress: ${successCount}/${emojis.size} emojis stolen...`,
+              title: 'Processing',
+              description: `Progress: ${successCount}/${emojis.size} emojis transferred`,
               timestamp: true
             })]
           });
@@ -94,14 +94,14 @@ export async function handleStealEmojis(interaction) {
           errors.push(`Emoji limit reached`);
           break;
         } else {
-          errors.push(`Failed to steal ${emoji.name}: ${error.message}`);
+          errors.push(`Failed: ${emoji.name}`);
         }
       }
     }
 
     const resultEmbed = createEmbed({
-      title: `${CONFIG.BOT_EMOJIS.SUCCESS} Emoji Theft Complete`,
-      description: `Successfully stolen **${successCount}** emojis from **${sourceGuild.name}**!`,
+      title: 'Transfer Complete',
+      description: `Successfully transferred **${successCount}** emojis from **${sourceGuild.name}**`,
       fields: [
         { name: 'Success', value: `${successCount}`, inline: true },
         { name: 'Failed', value: `${failCount}`, inline: true },

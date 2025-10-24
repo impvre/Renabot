@@ -12,29 +12,38 @@ export function createEmbed(options = {}) {
   if (options.thumbnail) embed.setThumbnail(options.thumbnail);
   if (options.image) embed.setImage(options.image);
   if (options.timestamp) embed.setTimestamp();
+  if (options.author) embed.setAuthor(options.author);
   
   return embed;
 }
 
-export function createSuccessEmbed(description, title = null) {
+export function createSuccessEmbed(description, title = 'Success') {
   return createEmbed({
-    title: title || `${CONFIG.BOT_EMOJIS.SUCCESS} Success`,
+    title,
     description,
     timestamp: true
   });
 }
 
-export function createErrorEmbed(description, title = null) {
+export function createErrorEmbed(description, title = 'Error') {
   return createEmbed({
-    title: title || `${CONFIG.BOT_EMOJIS.ERROR} Error`,
+    title,
     description,
     timestamp: true
   });
 }
 
-export function createWarningEmbed(description, title = null) {
+export function createWarningEmbed(description, title = 'Warning') {
   return createEmbed({
-    title: title || `${CONFIG.BOT_EMOJIS.WARNING} Warning`,
+    title,
+    description,
+    timestamp: true
+  });
+}
+
+export function createInfoEmbed(description, title = 'Information') {
+  return createEmbed({
+    title,
     description,
     timestamp: true
   });
@@ -52,6 +61,7 @@ export function createButton(options) {
   
   if (options.emoji) button.setEmoji(options.emoji);
   if (options.disabled) button.setDisabled(true);
+  if (options.url) button.setURL(options.url);
   
   return button;
 }
