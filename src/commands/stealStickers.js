@@ -2,64 +2,62 @@ import { PermissionFlagsBits } from 'discord.js';
 import { createEmbed, createSuccessEmbed, createErrorEmbed, createWarningEmbed } from '../utils/embedBuilder.js';
 import { CONFIG } from '../config.js';
 
-export async function handleStealStickers(message, args) {
-  if (!message.member.permissions.has(PermissionFlagsBits.ManageGuildExpressions)) {
-    return message.reply({
-      embeds: [createErrorEmbed('You need **Manage Expressions** permission to use this command.')]
+export async function handleStealStickers(interaction) {
+  if (!interaction.member.permissions.has(PermissionFlagsBits.ManageGuildExpressions)) {
+    return interaction.reply({
+      embeds: [createErrorEmbed('You need **Manage Expressions** permission to use this command.')],
+      ephemeral: true
     });
   }
 
-  if (!message.guild.members.me.permissions.has(PermissionFlagsBits.ManageGuildExpressions)) {
-    return message.reply({
-      embeds: [createErrorEmbed('I need **Manage Expressions** permission to steal stickers.')]
+  if (!interaction.guild.members.me.permissions.has(PermissionFlagsBits.ManageGuildExpressions)) {
+    return interaction.reply({
+      embeds: [createErrorEmbed('I need **Manage Expressions** permission to steal stickers.')],
+      ephemeral: true
     });
   }
 
-  const sourceServerId = args[0];
-  
-  if (!sourceServerId) {
-    return message.reply({
-      embeds: [createErrorEmbed('Please provide a server ID.\n\n**Usage:** `!stealstickers <server_id>`')]
-    });
-  }
+  await interaction.deferReply();
+
+  const sourceServerId = interaction.options.getString('server_id');
 
   let sourceGuild;
   try {
-    sourceGuild = await message.client.guilds.fetch(sourceServerId);
+    sourceGuild = await interaction.client.guilds.fetch(sourceServerId);
   } catch (error) {
-    return message.reply({
+    return interaction.editReply({
       embeds: [createErrorEmbed('I cannot access that server. Make sure I\'m in the server and the ID is correct.')]
     });
   }
-
-  const statusMsg = await message.reply({
-    embeds: [createEmbed({
-      title: `${CONFIG.BOT_EMOJIS.LOADING} Stealing Stickers`,
-      description: `Fetching stickers from **${sourceGuild.name}**...`,
-      timestamp: true
-    })]
-  });
 
   try {
     const stickers = await sourceGuild.stickers.fetch();
     
     if (stickers.size === 0) {
-      return statusMsg.edit({
+      return interaction.editReply({
         embeds: [createWarningEmbed('No stickers found in that server.')]
       });
     }
 
-    const stickerLimit = message.guild.premiumTier === 3 ? 60 : 
-                         message.guild.premiumTier === 2 ? 30 : 
-                         message.guild.premiumTier === 1 ? 15 : 5;
-    const currentStickerCount = message.guild.stickers.cache.size;
+    const stickerLimit = interaction.guild.premiumTier === 3 ? 60 : 
+                         interaction.guild.premiumTier === 2 ? 30 : 
+                         interaction.guild.premiumTier === 1 ? 15 : 5;
+    const currentStickerCount = interaction.guild.stickers.cache.size;
     const availableSlots = stickerLimit - currentStickerCount;
 
     if (availableSlots <= 0) {
-      return statusMsg.edit({
+      return interaction.editReply({
         embeds: [createErrorEmbed(`Your server has reached the sticker limit (${currentStickerCount}/${stickerLimit}).`)]
       });
     }
+
+    await interaction.editReply({
+      embeds: [createEmbed({
+        title: `${CONFIG.BOT_EMOJIS.LOADING} Stealing Stickers`,
+        description: `Fetching stickers from **${sourceGuild.name}**...\nFound ${stickers.size} stickers!`,
+        timestamp: true
+      })]
+    });
 
     let successCount = 0;
     let failCount = 0;
@@ -75,7 +73,7 @@ export async function handleStealStickers(message, args) {
         const response = await fetch(sticker.url);
         const buffer = await response.arrayBuffer();
         
-        await message.guild.stickers.create({
+        await interaction.guild.stickers.create({
           file: Buffer.from(buffer),
           name: sticker.name,
           tags: sticker.tags || '⭐',
@@ -84,7 +82,7 @@ export async function handleStealStickers(message, args) {
         successCount++;
         
         if (successCount % 3 === 0 || successCount === 1) {
-          await statusMsg.edit({
+          await interaction.editReply({
             embeds: [createEmbed({
               title: `${CONFIG.BOT_EMOJIS.LOADING} Stealing Stickers`,
               description: `Progress: ${successCount}/${Math.min(stickers.size, availableSlots)} stickers stolen...`,
@@ -123,11 +121,11 @@ export async function handleStealStickers(message, args) {
       });
     }
 
-    await statusMsg.edit({ embeds: [resultEmbed] });
+    await interaction.editReply({ embeds: [resultEmbed] });
 
   } catch (error) {
     console.error('Error stealing stickers:', error);
-    await statusMsg.edit({
+    await interaction.editReply({
       embeds: [createErrorEmbed(`An error occurred: ${error.message}`)]
     });
   }

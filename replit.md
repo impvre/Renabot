@@ -11,12 +11,12 @@ Rena is a Discord bot designed to steal (copy) emojis and stickers from other Di
 - **Permission Checks**: Ensures proper permissions before operations
 - **Progress Tracking**: Real-time updates during emoji/sticker theft
 
-## Commands
-- `!stealemojis <server_id>` or `!se <server_id>` - Steal all emojis from another server
-- `!stealstickers <server_id>` or `!ss <server_id>` - Steal all stickers from another server
-- `!addbotmoji <name> <emoji_id>` or `!abm <name> <emoji_id>` - (Owner only) Add custom emoji to bot
-- `!help` - Display help message
-- `!ping` - Check bot latency
+## Commands (All Slash Commands)
+- `/stealemojis <server_id>` - Steal all emojis from another server
+- `/stealstickers <server_id>` - Steal all stickers from another server
+- `/addbotmoji <name> <emoji_id>` - (Owner only, hidden from public) Add custom emoji to bot
+- `/help` - Display help message
+- `/ping` - Check bot latency
 
 ## Project Structure
 ```
@@ -40,14 +40,17 @@ Rena is a Discord bot designed to steal (copy) emojis and stickers from other Di
 Set the `OWNER_ID` environment variable to your Discord user ID to use admin commands.
 
 ## Recent Changes
+- Converted all commands to slash commands (October 24, 2025)
+- Hidden admin commands from public view using permission settings
+- Changed bot status to streaming with "made with <3 by @impvre"
 - Initial bot setup (October 24, 2025)
 - Implemented emoji and sticker stealing commands
 - Added custom embed builder with #1c1d23 color
 - Created owner-only emoji management system
-- Integrated with Replit Discord connector for authentication
 
 ## Architecture
 - Uses Discord.js v14 with ES modules
-- Replit Discord integration for token management
-- Message-based command system with prefix `!`
+- Slash command system with proper permission handling
+- Admin commands hidden from public (setDefaultMemberPermissions)
 - Modular command structure for easy maintenance
+- Streaming status presence

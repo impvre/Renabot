@@ -2,65 +2,63 @@ import { PermissionFlagsBits } from 'discord.js';
 import { createEmbed, createSuccessEmbed, createErrorEmbed, createWarningEmbed } from '../utils/embedBuilder.js';
 import { CONFIG } from '../config.js';
 
-export async function handleStealEmojis(message, args) {
-  if (!message.member.permissions.has(PermissionFlagsBits.ManageGuildExpressions)) {
-    return message.reply({
-      embeds: [createErrorEmbed('You need **Manage Expressions** permission to use this command.')]
+export async function handleStealEmojis(interaction) {
+  if (!interaction.member.permissions.has(PermissionFlagsBits.ManageGuildExpressions)) {
+    return interaction.reply({
+      embeds: [createErrorEmbed('You need **Manage Expressions** permission to use this command.')],
+      ephemeral: true
     });
   }
 
-  if (!message.guild.members.me.permissions.has(PermissionFlagsBits.ManageGuildExpressions)) {
-    return message.reply({
-      embeds: [createErrorEmbed('I need **Manage Expressions** permission to steal emojis.')]
+  if (!interaction.guild.members.me.permissions.has(PermissionFlagsBits.ManageGuildExpressions)) {
+    return interaction.reply({
+      embeds: [createErrorEmbed('I need **Manage Expressions** permission to steal emojis.')],
+      ephemeral: true
     });
   }
 
-  const sourceServerId = args[0];
-  
-  if (!sourceServerId) {
-    return message.reply({
-      embeds: [createErrorEmbed('Please provide a server ID.\n\n**Usage:** `!stealemojis <server_id>`')]
-    });
-  }
+  await interaction.deferReply();
+
+  const sourceServerId = interaction.options.getString('server_id');
 
   let sourceGuild;
   try {
-    sourceGuild = await message.client.guilds.fetch(sourceServerId);
+    sourceGuild = await interaction.client.guilds.fetch(sourceServerId);
   } catch (error) {
-    return message.reply({
+    return interaction.editReply({
       embeds: [createErrorEmbed('I cannot access that server. Make sure I\'m in the server and the ID is correct.')]
     });
   }
-
-  const statusMsg = await message.reply({
-    embeds: [createEmbed({
-      title: `${CONFIG.BOT_EMOJIS.LOADING} Stealing Emojis`,
-      description: `Fetching emojis from **${sourceGuild.name}**...`,
-      timestamp: true
-    })]
-  });
 
   try {
     const emojis = await sourceGuild.emojis.fetch();
     
     if (emojis.size === 0) {
-      return statusMsg.edit({
+      return interaction.editReply({
         embeds: [createWarningEmbed('No emojis found in that server.')]
       });
     }
 
-    const emojiLimit = message.guild.premiumTier === 3 ? 250 : 
-                       message.guild.premiumTier === 2 ? 150 : 
-                       message.guild.premiumTier === 1 ? 100 : 50;
+    const emojiLimit = interaction.guild.premiumTier === 3 ? 250 : 
+                       interaction.guild.premiumTier === 2 ? 150 : 
+                       interaction.guild.premiumTier === 1 ? 100 : 50;
     
-    const currentEmojiCount = message.guild.emojis.cache.size;
+    const currentEmojiCount = interaction.guild.emojis.cache.size;
     const availableSlots = emojiLimit - currentEmojiCount;
 
     if (availableSlots <= 0) {
-      return statusMsg.edit({
+      return interaction.editReply({
         embeds: [createErrorEmbed(`Your server has reached the emoji limit (${currentEmojiCount}/${emojiLimit}).`)]
       });
     }
+
+    await interaction.editReply({
+      embeds: [createEmbed({
+        title: `${CONFIG.BOT_EMOJIS.LOADING} Stealing Emojis`,
+        description: `Fetching emojis from **${sourceGuild.name}**...\nFound ${emojis.size} emojis!`,
+        timestamp: true
+      })]
+    });
 
     let successCount = 0;
     let failCount = 0;
@@ -73,14 +71,14 @@ export async function handleStealEmojis(message, args) {
       }
 
       try {
-        await message.guild.emojis.create({
+        await interaction.guild.emojis.create({
           attachment: emoji.url,
           name: emoji.name
         });
         successCount++;
         
         if (successCount % 10 === 0) {
-          await statusMsg.edit({
+          await interaction.editReply({
             embeds: [createEmbed({
               title: `${CONFIG.BOT_EMOJIS.LOADING} Stealing Emojis`,
               description: `Progress: ${successCount}/${emojis.size} emojis stolen...`,
@@ -119,11 +117,11 @@ export async function handleStealEmojis(message, args) {
       });
     }
 
-    await statusMsg.edit({ embeds: [resultEmbed] });
+    await interaction.editReply({ embeds: [resultEmbed] });
 
   } catch (error) {
     console.error('Error stealing emojis:', error);
-    await statusMsg.edit({
+    await interaction.editReply({
       embeds: [createErrorEmbed(`An error occurred: ${error.message}`)]
     });
   }

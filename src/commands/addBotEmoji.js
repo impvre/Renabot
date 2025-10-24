@@ -1,7 +1,6 @@
 import { createErrorEmbed, createSuccessEmbed } from '../utils/embedBuilder.js';
 import { CONFIG } from '../config.js';
 import fs from 'fs/promises';
-import path from 'path';
 
 const CUSTOM_EMOJIS_FILE = './data/customEmojis.json';
 
@@ -19,27 +18,24 @@ async function saveCustomEmojis(emojis) {
   await fs.writeFile(CUSTOM_EMOJIS_FILE, JSON.stringify(emojis, null, 2));
 }
 
-export async function handleAddBotEmoji(message, args) {
-  if (message.author.id !== CONFIG.OWNER_ID) {
-    return message.reply({
-      embeds: [createErrorEmbed('Only the bot owner can use this command.')]
+export async function handleAddBotEmoji(interaction) {
+  if (interaction.user.id !== CONFIG.OWNER_ID) {
+    return interaction.reply({
+      embeds: [createErrorEmbed('Only the bot owner can use this command.')],
+      ephemeral: true
     });
   }
 
-  const emojiName = args[0];
-  const emojiId = args[1];
+  const emojiName = interaction.options.getString('name');
+  const emojiId = interaction.options.getString('emoji_id');
 
-  if (!emojiName || !emojiId) {
-    return message.reply({
-      embeds: [createErrorEmbed('Please provide emoji name and ID.\n\n**Usage:** `!addbotmoji <name> <emoji_id>`\n**Example:** `!addbotmoji success 1234567890`')]
-    });
-  }
+  await interaction.deferReply({ ephemeral: true });
 
   try {
-    const emoji = await message.client.emojis.fetch(emojiId);
+    const emoji = await interaction.client.emojis.fetch(emojiId);
     
     if (!emoji) {
-      return message.reply({
+      return interaction.editReply({
         embeds: [createErrorEmbed('Could not find an emoji with that ID. Make sure the bot is in the server with that emoji.')]
       });
     }
@@ -56,7 +52,7 @@ export async function handleAddBotEmoji(message, args) {
 
     CONFIG.BOT_EMOJIS[emojiName.toUpperCase()] = customEmojis[emojiName.toUpperCase()].format;
 
-    return message.reply({
+    return interaction.editReply({
       embeds: [createSuccessEmbed(
         `Successfully added custom emoji **${emojiName}**: ${emoji}\n\n` +
         `You can now use this emoji in the bot by referencing \`${emojiName.toUpperCase()}\`.`
@@ -65,7 +61,7 @@ export async function handleAddBotEmoji(message, args) {
 
   } catch (error) {
     console.error('Error adding bot emoji:', error);
-    return message.reply({
+    return interaction.editReply({
       embeds: [createErrorEmbed(`Failed to add emoji: ${error.message}`)]
     });
   }

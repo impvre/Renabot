@@ -1,3 +1,4 @@
+import { SlashCommandBuilder, REST, Routes, PermissionFlagsBits, ActivityType } from 'discord.js';
 import { getDiscordClient } from './auth.js';
 import { handleStealEmojis } from './commands/stealEmojis.js';
 import { handleStealStickers } from './commands/stealStickers.js';
@@ -5,7 +6,62 @@ import { handleAddBotEmoji, loadBotEmojis } from './commands/addBotEmoji.js';
 import { createEmbed, createSuccessEmbed, createErrorEmbed } from './utils/embedBuilder.js';
 import { CONFIG } from './config.js';
 
-const PREFIX = '!';
+const commands = [
+  new SlashCommandBuilder()
+    .setName('stealemojis')
+    .setDescription('Steal all emojis from another server')
+    .addStringOption(option =>
+      option.setName('server_id')
+        .setDescription('The ID of the server to steal emojis from')
+        .setRequired(true))
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuildExpressions),
+  
+  new SlashCommandBuilder()
+    .setName('stealstickers')
+    .setDescription('Steal all stickers from another server')
+    .addStringOption(option =>
+      option.setName('server_id')
+        .setDescription('The ID of the server to steal stickers from')
+        .setRequired(true))
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuildExpressions),
+  
+  new SlashCommandBuilder()
+    .setName('addbotmoji')
+    .setDescription('Add a custom emoji to the bot (Owner only)')
+    .addStringOption(option =>
+      option.setName('name')
+        .setDescription('Name for the emoji')
+        .setRequired(true))
+    .addStringOption(option =>
+      option.setName('emoji_id')
+        .setDescription('The emoji ID')
+        .setRequired(true))
+    .setDefaultMemberPermissions(0),
+  
+  new SlashCommandBuilder()
+    .setName('help')
+    .setDescription('Show all available commands'),
+  
+  new SlashCommandBuilder()
+    .setName('ping')
+    .setDescription('Check bot latency')
+].map(command => command.toJSON());
+
+async function registerCommands(client) {
+  try {
+    console.log('Registering slash commands...');
+    const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_BOT_TOKEN);
+    
+    await rest.put(
+      Routes.applicationCommands(client.user.id),
+      { body: commands }
+    );
+    
+    console.log('✅ Successfully registered slash commands');
+  } catch (error) {
+    console.error('Error registering commands:', error);
+  }
+}
 
 async function main() {
   console.log('Starting Rena Discord Bot...');
@@ -17,57 +73,55 @@ async function main() {
     console.log(`Bot is in ${client.guilds.cache.size} servers`);
     
     await loadBotEmojis(client);
+    await registerCommands(client);
     
     client.user.setPresence({
-      activities: [{ name: 'Emoji Thief | !help', type: 0 }],
+      activities: [{ 
+        name: 'made with <3 by @impvre', 
+        type: ActivityType.Streaming,
+        url: 'https://twitch.tv/rena'
+      }],
       status: 'online'
     });
   });
 
-  client.on('messageCreate', async (message) => {
-    if (message.author.bot) return;
-    if (!message.content.startsWith(PREFIX)) return;
-    if (!message.guild) return;
-
-    const args = message.content.slice(PREFIX.length).trim().split(/ +/);
-    const command = args.shift().toLowerCase();
+  client.on('interactionCreate', async (interaction) => {
+    if (!interaction.isChatInputCommand()) return;
 
     try {
-      switch (command) {
+      switch (interaction.commandName) {
         case 'stealemojis':
-        case 'se':
-          await handleStealEmojis(message, args);
+          await handleStealEmojis(interaction);
           break;
 
         case 'stealstickers':
-        case 'ss':
-          await handleStealStickers(message, args);
+          await handleStealStickers(interaction);
           break;
 
         case 'addbotmoji':
-        case 'abm':
-          await handleAddBotEmoji(message, args);
+          await handleAddBotEmoji(interaction);
           break;
 
         case 'help':
-          await handleHelp(message);
+          await handleHelp(interaction);
           break;
 
         case 'ping':
-          const ping = Date.now() - message.createdTimestamp;
-          await message.reply({
-            embeds: [createSuccessEmbed(`🏓 Pong! Latency: ${ping}ms | API Latency: ${Math.round(client.ws.ping)}ms`)]
+          const ping = Date.now() - interaction.createdTimestamp;
+          await interaction.reply({
+            embeds: [createSuccessEmbed(`Pong! Latency: ${ping}ms | API Latency: ${Math.round(client.ws.ping)}ms`)]
           });
-          break;
-
-        default:
           break;
       }
     } catch (error) {
-      console.error(`Error executing command ${command}:`, error);
-      await message.reply({
-        embeds: [createErrorEmbed(`An error occurred while executing the command: ${error.message}`)]
-      }).catch(console.error);
+      console.error(`Error executing command ${interaction.commandName}:`, error);
+      const errorEmbed = createErrorEmbed(`An error occurred: ${error.message}`);
+      
+      if (interaction.deferred || interaction.replied) {
+        await interaction.editReply({ embeds: [errorEmbed] }).catch(console.error);
+      } else {
+        await interaction.reply({ embeds: [errorEmbed], ephemeral: true }).catch(console.error);
+      }
     }
   });
 
@@ -82,45 +136,40 @@ async function main() {
   });
 }
 
-async function handleHelp(message) {
+async function handleHelp(interaction) {
   const helpEmbed = createEmbed({
-    title: '📚 Rena - Emoji & Sticker Thief',
+    title: 'Rena - Emoji & Sticker Thief',
     description: 'A powerful bot for stealing emojis and stickers from other servers!',
     fields: [
       {
-        name: `${CONFIG.BOT_EMOJIS.EMOJI} Emoji Commands`,
-        value: '`!stealemojis <server_id>` or `!se <server_id>`\nSteal all emojis from another server',
+        name: 'Emoji Commands',
+        value: '`/stealemojis <server_id>`\nSteal all emojis from another server',
         inline: false
       },
       {
-        name: `${CONFIG.BOT_EMOJIS.STICKER} Sticker Commands`,
-        value: '`!stealstickers <server_id>` or `!ss <server_id>`\nSteal all stickers from another server',
+        name: 'Sticker Commands',
+        value: '`/stealstickers <server_id>`\nSteal all stickers from another server',
         inline: false
       },
       {
-        name: '⚙️ Bot Management (Owner Only)',
-        value: '`!addbotmoji <name> <emoji_id>` or `!abm <name> <emoji_id>`\nAdd a custom emoji to the bot for use in buttons and embeds',
+        name: 'Utility',
+        value: '`/help` - Show this help message\n`/ping` - Check bot latency',
         inline: false
       },
       {
-        name: '🔧 Utility',
-        value: '`!help` - Show this help message\n`!ping` - Check bot latency',
-        inline: false
-      },
-      {
-        name: '📝 Notes',
-        value: '• You need **Manage Expressions** permission to steal emojis/stickers\n' +
+        name: 'Notes',
+        value: '• You need **Manage Expressions** permission to use steal commands\n' +
                '• The bot needs **Manage Expressions** permission in both servers\n' +
                '• The bot must be in both the source and target servers\n' +
                '• Emoji limits depend on server boost level',
         inline: false
       }
     ],
-    footer: { text: 'Rena Bot • Made with ❤️' },
+    footer: { text: 'made with <3 by @impvre' },
     timestamp: true
   });
 
-  await message.reply({ embeds: [helpEmbed] });
+  await interaction.reply({ embeds: [helpEmbed] });
 }
 
 main().catch(console.error);

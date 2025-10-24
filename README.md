@@ -13,16 +13,18 @@ A powerful Discord bot for stealing (copying) emojis and stickers from other ser
 
 ## Commands
 
+All commands are slash commands - just type `/` in Discord to see them!
+
 ### Emoji & Sticker Commands
-- `!stealemojis <server_id>` or `!se <server_id>` - Steal all emojis from another server
-- `!stealstickers <server_id>` or `!ss <server_id>` - Steal all stickers from another server
+- `/stealemojis <server_id>` - Steal all emojis from another server
+- `/stealstickers <server_id>` - Steal all stickers from another server
 
 ### Bot Management (Owner Only)
-- `!addbotmoji <name> <emoji_id>` or `!abm <name> <emoji_id>` - Add a custom emoji to the bot
+- `/addbotmoji <name> <emoji_id>` - Add a custom emoji to the bot (hidden from public)
 
 ### Utility
-- `!help` - Display help message with all commands
-- `!ping` - Check bot latency
+- `/help` - Display help message with all commands
+- `/ping` - Check bot latency
 
 ## Requirements
 
@@ -54,8 +56,12 @@ The bot is already configured and running! Just invite it to your servers and st
 
 1. Invite the bot to both the source server (where emojis are) and target server (where you want them)
 2. Get the source server's ID (right-click server → Copy Server ID)
-3. In the target server, use `!stealemojis <server_id>` or `!stealstickers <server_id>`
+3. In the target server, use `/stealemojis <server_id>` or `/stealstickers <server_id>`
 4. Watch the progress as emojis/stickers are copied!
+
+## Owner Commands
+
+The `/addbotmoji` command is hidden from regular users and only visible to the bot owner. This allows you to add custom emojis that the bot can use in its messages and embeds.
 
 ## Notes
 
