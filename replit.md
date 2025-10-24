@@ -1,21 +1,23 @@
 # Rena Discord Bot
 
 ## Overview
-Rena is a Discord bot designed to steal (copy) emojis and stickers from other Discord servers. The bot features custom embed styling with color #1c1d23 and supports custom emoji buttons. Only the bot owner can add custom emojis to the bot itself.
+Rena is a Discord bot designed to clone custom emojis and stickers with ease. The bot features clean, aesthetic embed styling with color #1c1d23 and uses 54 custom emojis for enhanced visual appeal.
 
 ## Features
-- **Mass Emoji Stealing**: Clone all emojis from another server
-- **Sticker Stealing**: Clone stickers from another server
-- **Custom Embed Styling**: All embeds use #1c1d23 color
-- **Owner-Only Emoji Management**: Add custom emojis to the bot for use in buttons/embeds
+- **Single Emoji Cloning**: Clone individual emojis by pasting them
+- **Bulk Emoji Cloning**: Clone up to 50 emojis at once
+- **Interactive Sticker Cloning**: Clone stickers with an interactive prompt
+- **Smart Handling**: Automatically skips duplicates and handles server limits
+- **Clean Embed Styling**: All embeds use #1c1d23 color with no default emojis
 - **Permission Checks**: Ensures proper permissions before operations
-- **Progress Tracking**: Real-time updates during emoji/sticker theft
+- **Progress Tracking**: Real-time updates during bulk operations
 
 ## Commands (All Slash Commands)
-- `/stealemojis <server_id>` - Steal all emojis from another server
-- `/stealstickers <server_id>` - Steal all stickers from another server
-- `/addbotmoji <name> <emoji_id>` - (Owner only, hidden from public) Add custom emoji to bot
-- `/help` - Display help message
+- `/cloneemoji <emojis>` - Clone a single custom emoji
+- `/cloneemojis <emojis>` - Clone multiple emojis (up to 50)
+- `/clonesticker` - Clone a sticker interactively
+- `/info` - Learn about Rena and its features
+- `/help` - Display all available commands
 - `/ping` - Check bot latency
 
 ## Project Structure
@@ -40,13 +42,17 @@ Rena is a Discord bot designed to steal (copy) emojis and stickers from other Di
 Set the `OWNER_ID` environment variable to your Discord user ID to use admin commands.
 
 ## Recent Changes
+- Removed old steal/transfer commands and replaced with clone commands (October 24, 2025)
+- Added /cloneemoji for single emoji cloning
+- Added /cloneemojis for bulk emoji cloning (up to 50)
+- Added /clonesticker for interactive sticker cloning
+- Added /info command to explain bot features
+- Loaded 54 custom emojis into the bot
+- Removed all default emojis from embeds
+- Updated help command to reflect new command set
+- All embeds now use clean #1c1d23 theme
 - Converted all commands to slash commands (October 24, 2025)
-- Hidden admin commands from public view using permission settings
-- Changed bot status to streaming with "made with <3 by @impvre"
-- Initial bot setup (October 24, 2025)
-- Implemented emoji and sticker stealing commands
-- Added custom embed builder with #1c1d23 color
-- Created owner-only emoji management system
+- Changed bot status to "made with <3 by @impvre"
 
 ## Architecture
 - Uses Discord.js v14 with ES modules
