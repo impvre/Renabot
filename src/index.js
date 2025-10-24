@@ -1,42 +1,39 @@
 import { SlashCommandBuilder, REST, Routes, PermissionFlagsBits, ActivityType } from 'discord.js';
 import { getDiscordClient } from './auth.js';
-import { handleStealEmojis } from './commands/stealEmojis.js';
-import { handleStealStickers } from './commands/stealStickers.js';
-import { handleAddBotEmoji, loadBotEmojis } from './commands/addBotEmoji.js';
+import { handleCloneEmoji } from './commands/cloneEmoji.js';
+import { handleCloneEmojis } from './commands/cloneEmojis.js';
+import { handleCloneSticker } from './commands/cloneSticker.js';
+import { loadBotEmojis } from './commands/addBotEmoji.js';
 import { createEmbed, createSuccessEmbed, createErrorEmbed } from './utils/embedBuilder.js';
 import { CONFIG } from './config.js';
 
 const commands = [
   new SlashCommandBuilder()
-    .setName('stealemojis')
-    .setDescription('Steal all emojis from another server')
+    .setName('cloneemoji')
+    .setDescription('Clone a single custom emoji')
     .addStringOption(option =>
-      option.setName('server_id')
-        .setDescription('The ID of the server to steal emojis from')
+      option.setName('emojis')
+        .setDescription('Paste the emoji you want to clone')
         .setRequired(true))
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuildExpressions),
   
   new SlashCommandBuilder()
-    .setName('stealstickers')
-    .setDescription('Steal all stickers from another server')
+    .setName('cloneemojis')
+    .setDescription('Clone multiple emojis at once (up to 50)')
     .addStringOption(option =>
-      option.setName('server_id')
-        .setDescription('The ID of the server to steal stickers from')
+      option.setName('emojis')
+        .setDescription('Paste all the emojis you want to clone')
         .setRequired(true))
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuildExpressions),
   
   new SlashCommandBuilder()
-    .setName('addbotmoji')
-    .setDescription('Add a custom emoji to the bot (Owner only)')
-    .addStringOption(option =>
-      option.setName('name')
-        .setDescription('Name for the emoji')
-        .setRequired(true))
-    .addStringOption(option =>
-      option.setName('emoji')
-        .setDescription('Paste the emoji here or provide its ID')
-        .setRequired(true))
-    .setDefaultMemberPermissions(0),
+    .setName('clonesticker')
+    .setDescription('Clone a sticker (bot will ask you to send it)')
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuildExpressions),
+  
+  new SlashCommandBuilder()
+    .setName('info')
+    .setDescription('Learn about Rena and what it can do'),
   
   new SlashCommandBuilder()
     .setName('help')
@@ -89,16 +86,20 @@ async function main() {
 
     try {
       switch (interaction.commandName) {
-        case 'stealemojis':
-          await handleStealEmojis(interaction);
+        case 'cloneemoji':
+          await handleCloneEmoji(interaction);
           break;
 
-        case 'stealstickers':
-          await handleStealStickers(interaction);
+        case 'cloneemojis':
+          await handleCloneEmojis(interaction);
           break;
 
-        case 'addbotmoji':
-          await handleAddBotEmoji(interaction);
+        case 'clonesticker':
+          await handleCloneSticker(interaction);
+          break;
+
+        case 'info':
+          await handleInfo(interaction);
           break;
 
         case 'help':
@@ -108,7 +109,7 @@ async function main() {
         case 'ping':
           const ping = Date.now() - interaction.createdTimestamp;
           await interaction.reply({
-            embeds: [createSuccessEmbed(`Pong! Latency: ${ping}ms | API Latency: ${Math.round(client.ws.ping)}ms`)]
+            embeds: [createSuccessEmbed(`Pong! Latency: ${ping}ms | API Latency: ${Math.round(client.ws.ping)}ms`, 'Pong')]
           });
           break;
       }
@@ -135,24 +136,61 @@ async function main() {
   });
 }
 
-async function handleHelp(interaction) {
-  const helpEmbed = createEmbed({
+async function handleInfo(interaction) {
+  const infoEmbed = createEmbed({
     title: 'Rena',
-    description: 'Transfer emojis and stickers between servers',
+    description: 'A Discord bot designed to help you clone custom emojis and stickers with ease.',
     fields: [
       {
-        name: 'Commands',
-        value: '`/stealemojis <server_id>` — Transfer all emojis from another server\n' +
-               '`/stealstickers <server_id>` — Transfer all stickers from another server\n' +
-               '`/ping` — Check bot latency\n' +
-               '`/help` — Show this message',
+        name: 'What can Rena do?',
+        value: '**Clone Individual Items**\nQuickly clone single emojis or stickers by simply pasting them.\n\n' +
+               '**Bulk Operations**\nClone up to 50 emojis at once.',
+        inline: false
+      },
+      {
+        name: 'Key Features',
+        value: '• **Simple & Fast** — Paste emojis directly, no complicated steps\n' +
+               '• **Smart Handling** — Automatically skips duplicates and handles limits\n' +
+               '• **Bulk Support** — Clone multiple items in a single command',
+        inline: false
+      },
+      {
+        name: 'Getting Started',
+        value: 'Use `/help` to see all available commands\n' +
+               'Use `/info` to see this message again',
+        inline: false
+      }
+    ],
+    footer: { text: 'made with <3 by @impvre' },
+    timestamp: true
+  });
+
+  await interaction.reply({ embeds: [infoEmbed] });
+}
+
+async function handleHelp(interaction) {
+  const helpEmbed = createEmbed({
+    title: 'Commands',
+    description: 'All available commands for Rena',
+    fields: [
+      {
+        name: 'Clone Commands',
+        value: '`/cloneemoji <emojis>` — Clone a single emoji\n' +
+               '`/cloneemojis <emojis>` — Clone multiple emojis (up to 50)\n' +
+               '`/clonesticker` — Clone a sticker interactively',
+        inline: false
+      },
+      {
+        name: 'Utility',
+        value: '`/info` — Learn about Rena\n' +
+               '`/help` — Show this message\n' +
+               '`/ping` — Check bot latency',
         inline: false
       },
       {
         name: 'Requirements',
-        value: '• **Manage Expressions** permission required for both you and the bot\n' +
-               '• Bot must be present in both source and destination servers\n' +
-               '• Transfer limits depend on server boost level',
+        value: '• **Manage Expressions** permission required\n' +
+               '• Bot must have **Manage Expressions** permission',
         inline: false
       }
     ],
