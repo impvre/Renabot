@@ -32,7 +32,16 @@ export async function handleAddBotEmoji(interaction) {
   await interaction.deferReply({ ephemeral: true });
 
   try {
-    const emoji = await interaction.client.emojis.fetch(emojiId);
+    let emoji = null;
+    
+    for (const guild of interaction.client.guilds.cache.values()) {
+      try {
+        emoji = await guild.emojis.fetch(emojiId);
+        if (emoji) break;
+      } catch (error) {
+        continue;
+      }
+    }
     
     if (!emoji) {
       return interaction.editReply({
