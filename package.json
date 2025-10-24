@@ -1,0 +1,17 @@
+{
+  "name": "rena-discord-bot",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node src/index.js"
+  },
+  "keywords": ["discord", "bot", "emoji", "sticker"],
+  "author": "",
+  "license": "ISC",
+  "description": "Rena - Discord emoji and sticker stealing bot",
+  "dependencies": {
+    "discord.js": "^14.23.2"
+  }
+}
