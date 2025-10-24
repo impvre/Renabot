@@ -12,13 +12,16 @@ async function main() {
   
   const client = await getDiscordClient();
 
-  client.once('ready', async () => {
+  client.once('clientReady', async () => {
     console.log(`✅ Logged in as ${client.user.tag}`);
     console.log(`Bot is in ${client.guilds.cache.size} servers`);
     
     await loadBotEmojis(client);
     
-    client.user.setActivity('Emoji Thief | !help', { type: 'PLAYING' });
+    client.user.setPresence({
+      activities: [{ name: 'Emoji Thief | !help', type: 0 }],
+      status: 'online'
+    });
   });
 
   client.on('messageCreate', async (message) => {

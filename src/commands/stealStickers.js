@@ -49,7 +49,9 @@ export async function handleStealStickers(message, args) {
       });
     }
 
-    const stickerLimit = 5;
+    const stickerLimit = message.guild.premiumTier === 3 ? 60 : 
+                         message.guild.premiumTier === 2 ? 30 : 
+                         message.guild.premiumTier === 1 ? 15 : 5;
     const currentStickerCount = message.guild.stickers.cache.size;
     const availableSlots = stickerLimit - currentStickerCount;
 
@@ -81,13 +83,15 @@ export async function handleStealStickers(message, args) {
         });
         successCount++;
         
-        await statusMsg.edit({
-          embeds: [createEmbed({
-            title: `${CONFIG.BOT_EMOJIS.LOADING} Stealing Stickers`,
-            description: `Progress: ${successCount}/${Math.min(stickers.size, availableSlots)} stickers stolen...`,
-            timestamp: true
-          })]
-        });
+        if (successCount % 3 === 0 || successCount === 1) {
+          await statusMsg.edit({
+            embeds: [createEmbed({
+              title: `${CONFIG.BOT_EMOJIS.LOADING} Stealing Stickers`,
+              description: `Progress: ${successCount}/${Math.min(stickers.size, availableSlots)} stickers stolen...`,
+              timestamp: true
+            })]
+          });
+        }
       } catch (error) {
         failCount++;
         if (error.code === 50013) {

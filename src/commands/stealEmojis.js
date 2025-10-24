@@ -79,7 +79,7 @@ export async function handleStealEmojis(message, args) {
         });
         successCount++;
         
-        if (successCount % 5 === 0) {
+        if (successCount % 10 === 0) {
           await statusMsg.edit({
             embeds: [createEmbed({
               title: `${CONFIG.BOT_EMOJIS.LOADING} Stealing Emojis`,
