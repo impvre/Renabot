@@ -78,8 +78,7 @@ async function main() {
     client.user.setPresence({
       activities: [{ 
         name: 'made with <3 by @impvre', 
-        type: ActivityType.Streaming,
-        url: 'https://twitch.tv/rena'
+        type: ActivityType.Playing
       }],
       status: 'online'
     });
