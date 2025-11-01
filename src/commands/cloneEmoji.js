@@ -16,7 +16,7 @@ export async function handleCloneEmoji(interaction) {
     });
   }
 
-  const emojiInput = interaction.options.getString('emojis');
+  const emojiInput = interaction.options.getString('emoji');
 
   await interaction.deferReply();
 
@@ -34,21 +34,32 @@ export async function handleCloneEmoji(interaction) {
     const emojiName = emojiMatch[2];
     const emojiId = emojiMatch[3];
 
-    // Check emoji limit
+    // Fetch fresh emoji data from Discord API
+    await interaction.guild.emojis.fetch();
+
+    // Check emoji limit (accounting for static and animated separately)
     const emojiLimit = interaction.guild.premiumTier === 3 ? 250 : 
                        interaction.guild.premiumTier === 2 ? 150 : 
                        interaction.guild.premiumTier === 1 ? 100 : 50;
     
-    const currentEmojiCount = interaction.guild.emojis.cache.size;
+    const currentEmojis = interaction.guild.emojis.cache;
+    const currentEmojiCount = currentEmojis.size;
+    const animatedCount = currentEmojis.filter(e => e.animated).size;
+    const staticCount = currentEmojiCount - animatedCount;
 
-    if (currentEmojiCount >= emojiLimit) {
+    // Check if adding this emoji would exceed the limit
+    if (isAnimated && animatedCount >= emojiLimit) {
       return interaction.editReply({
-        embeds: [createErrorEmbed(`Your server has reached the emoji limit (${currentEmojiCount}/${emojiLimit}).`)]
+        embeds: [createErrorEmbed(`Your server has reached the animated emoji limit (${animatedCount}/${emojiLimit}).`)]
+      });
+    } else if (!isAnimated && staticCount >= emojiLimit) {
+      return interaction.editReply({
+        embeds: [createErrorEmbed(`Your server has reached the static emoji limit (${staticCount}/${emojiLimit}).`)]
       });
     }
 
     // Check if emoji already exists in the server
-    const existingEmoji = interaction.guild.emojis.cache.find(e => e.name === emojiName);
+    const existingEmoji = currentEmojis.find(e => e.name === emojiName);
     if (existingEmoji) {
       return interaction.editReply({
         embeds: [createErrorEmbed(`An emoji named **${emojiName}** already exists in this server.`)]
