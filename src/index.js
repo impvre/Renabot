@@ -73,16 +73,20 @@ async function main() {
       const serverCount = client.guilds.cache.size;
       const userCount = client.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0);
       
-      client.user.setPresence({
-        activities: [{
-          name: `${serverCount} servers & ${userCount} users`,
-          type: ActivityType.Watching
-        }],
-        status: 'idle'
-      });
+      setTimeout(() => {
+        client.user.setPresence({
+          activities: [{
+            name: `${serverCount} servers & ${userCount} users`,
+            type: ActivityType.Watching
+          }],
+          status: 'idle'
+        });
+        
+        console.log(`Serving ${serverCount} servers with ${userCount} total users`);
+        console.log('Status set to idle - Watching servers and users');
+      }, 1000);
       
-      console.log(`Serving ${serverCount} servers with ${userCount} total users`);
-      console.log('Status set to idle - Watching servers and users');
+      console.log('Waiting to set presence...');
 
       const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_BOT_TOKEN);
       console.log('Registering slash commands...');
