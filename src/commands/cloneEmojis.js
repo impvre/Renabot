@@ -1,5 +1,5 @@
 import { PermissionFlagsBits } from 'discord.js';
-import { createEmbed, createErrorEmbed } from '../utils/embedBuilder.js';
+import { createEmbed, createErrorEmbed, EMOJIS } from '../utils/embedBuilder.js';
 
 export async function handleCloneEmojis(interaction) {
   if (!interaction.member.permissions.has(PermissionFlagsBits.ManageGuildExpressions)) {
@@ -37,24 +37,32 @@ export async function handleCloneEmojis(interaction) {
       });
     }
 
-    // Check emoji limit
+    // Fetch fresh emoji data from Discord API
+    await interaction.guild.emojis.fetch();
+
+    // Check emoji limit (accounting for static and animated separately)
     const emojiLimit = interaction.guild.premiumTier === 3 ? 250 : 
                        interaction.guild.premiumTier === 2 ? 150 : 
                        interaction.guild.premiumTier === 1 ? 100 : 50;
     
-    const currentEmojiCount = interaction.guild.emojis.cache.size;
-    const availableSlots = emojiLimit - currentEmojiCount;
+    const currentEmojis = interaction.guild.emojis.cache;
+    const currentEmojiCount = currentEmojis.size;
+    const animatedCount = currentEmojis.filter(e => e.animated).size;
+    const staticCount = currentEmojiCount - animatedCount;
 
-    if (availableSlots <= 0) {
+    const availableAnimatedSlots = emojiLimit - animatedCount;
+    const availableStaticSlots = emojiLimit - staticCount;
+
+    if (availableAnimatedSlots <= 0 && availableStaticSlots <= 0) {
       return interaction.editReply({
-        embeds: [createErrorEmbed(`Your server has reached the emoji limit (${currentEmojiCount}/${emojiLimit}).`)]
+        embeds: [createErrorEmbed(`Your server has reached the emoji limit.\nStatic: ${staticCount}/${emojiLimit} | Animated: ${animatedCount}/${emojiLimit}`)]
       });
     }
 
     await interaction.editReply({
       embeds: [createEmbed({
-        title: 'Processing',
-        description: `Found ${matches.length} emojis to clone\nAvailable slots: ${availableSlots}`,
+        title: `${EMOJIS.PROCESSING} Processing`,
+        description: `Found ${matches.length} emojis to clone\nStatic slots: ${availableStaticSlots} | Animated slots: ${availableAnimatedSlots}`,
         timestamp: true
       })]
     });
@@ -64,20 +72,27 @@ export async function handleCloneEmojis(interaction) {
     let failCount = 0;
     const errors = [];
     const skipped = [];
+    let currentAnimatedCount = animatedCount;
+    let currentStaticCount = staticCount;
 
     for (const match of matches) {
-      if (successCount >= availableSlots) {
-        failCount += (matches.length - successCount - skipCount);
-        errors.push(`Reached emoji limit after ${successCount} emojis`);
-        break;
-      }
-
       const isAnimated = match[1] === 'a';
       const emojiName = match[2];
       const emojiId = match[3];
 
+      // Check if we have space for this emoji type
+      if (isAnimated && currentAnimatedCount >= emojiLimit) {
+        failCount++;
+        errors.push(`Animated emoji limit reached (${currentAnimatedCount}/${emojiLimit})`);
+        break;
+      } else if (!isAnimated && currentStaticCount >= emojiLimit) {
+        failCount++;
+        errors.push(`Static emoji limit reached (${currentStaticCount}/${emojiLimit})`);
+        break;
+      }
+
       // Check if emoji already exists
-      const existingEmoji = interaction.guild.emojis.cache.find(e => e.name === emojiName);
+      const existingEmoji = currentEmojis.find(e => e.name === emojiName);
       if (existingEmoji) {
         skipCount++;
         skipped.push(emojiName);
@@ -93,12 +108,17 @@ export async function handleCloneEmojis(interaction) {
         });
         
         successCount++;
+        if (isAnimated) {
+          currentAnimatedCount++;
+        } else {
+          currentStaticCount++;
+        }
         
         // Update progress every 5 emojis
         if (successCount % 5 === 0) {
           await interaction.editReply({
             embeds: [createEmbed({
-              title: 'Processing',
+              title: `${EMOJIS.PROCESSING} Processing`,
               description: `Progress: ${successCount + skipCount}/${matches.length} emojis processed\nCloned: ${successCount} | Skipped: ${skipCount}`,
               timestamp: true
             })]
@@ -118,7 +138,7 @@ export async function handleCloneEmojis(interaction) {
     }
 
     const resultEmbed = createEmbed({
-      title: 'Clone Complete',
+      title: `${EMOJIS.SUCCESS} Clone Complete`,
       description: `Processed ${matches.length} emojis`,
       fields: [
         { name: 'Cloned', value: `${successCount}`, inline: true },
