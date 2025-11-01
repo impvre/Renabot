@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, REST, Routes } from 'discord.js';
+import { SlashCommandBuilder, REST, Routes, ActivityType } from 'discord.js';
 import { getDiscordClient } from './auth.js';
 import { CONFIG } from './config.js';
 import { handleCloneEmojis } from './commands/cloneEmojis.js';
@@ -155,7 +155,20 @@ async function main() {
 
     client.on('ready', () => {
       console.log(`Bot is ready! Logged in as ${client.user.tag}`);
-      console.log(`Serving ${client.guilds.cache.size} servers`);
+      
+      const serverCount = client.guilds.cache.size;
+      const userCount = client.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0);
+      
+      client.user.setPresence({
+        activities: [{
+          name: `${serverCount} servers & ${userCount} users`,
+          type: ActivityType.Watching
+        }],
+        status: 'idle'
+      });
+      
+      console.log(`Serving ${serverCount} servers with ${userCount} total users`);
+      console.log('Status set to idle - Watching servers and users');
     });
 
     console.log('Bot is now running!');
