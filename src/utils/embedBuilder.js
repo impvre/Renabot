@@ -15,13 +15,18 @@ export const EMOJIS = {
   SUCCESS: getEmoji('002_check'),
   ERROR: getEmoji('002_deny'),
   WARNING: getEmoji('002_pinkinfo'),
-  INFO: getEmoji('02_bubbles'),
+  INFO: getEmoji('002_pinkHeartbubble3'),
   PROCESSING: getEmoji('02_butterfly'),
   QUESTION: getEmoji('farm_1Question'),
   YES: getEmoji('farm_1Yes'),
   NO: getEmoji('farm_1No'),
   STAR: getEmoji('004star'),
-  HEART: getEmoji('pp_heart')
+  HEART: getEmoji('9_heart1'),
+  RAINBOW: getEmoji('1_rainbow'),
+  MAIL: getEmoji('4_mail'),
+  CAT: getEmoji('a02_bouncecat'),
+  KITTEN: getEmoji('a02_bouncekitten'),
+  RABBIT: getEmoji('a02_bouncerabbit')
 };
 
 export function createEmbed(options = {}) {
