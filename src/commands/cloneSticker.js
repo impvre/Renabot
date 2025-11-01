@@ -1,5 +1,5 @@
-import { PermissionFlagsBits } from 'discord.js';
-import { createEmbed, createSuccessEmbed, createErrorEmbed } from '../utils/embedBuilder.js';
+import { PermissionFlagsBits, StickerType } from 'discord.js';
+import { createEmbed, createSuccessEmbed, createErrorEmbed, EMOJIS } from '../utils/embedBuilder.js';
 
 export async function handleCloneSticker(interaction) {
   if (!interaction.member.permissions.has(PermissionFlagsBits.ManageGuildExpressions)) {
@@ -18,7 +18,7 @@ export async function handleCloneSticker(interaction) {
 
   await interaction.reply({
     embeds: [createEmbed({
-      title: 'Clone Sticker',
+      title: `${EMOJIS.INFO} Clone Sticker`,
       description: 'Please send the sticker you want to clone in this channel within the next 60 seconds.',
       timestamp: true
     })]
@@ -47,17 +47,22 @@ export async function handleCloneSticker(interaction) {
     }
 
     // Check if it's a custom sticker (not a default Discord sticker)
-    if (!sticker.guildId) {
+    // Use StickerType instead of guildId because guildId can be null even for custom stickers
+    if (sticker.type === StickerType.Standard) {
       return interaction.editReply({
         embeds: [createErrorEmbed('This is a default Discord sticker and cannot be cloned. Please use a custom server sticker.')]
       });
     }
 
+    // Fetch fresh sticker data from Discord API
+    await interaction.guild.stickers.fetch();
+
     // Check sticker limit
     const stickerLimit = interaction.guild.premiumTier === 3 ? 60 : 
                          interaction.guild.premiumTier === 2 ? 30 : 
                          interaction.guild.premiumTier === 1 ? 15 : 5;
-    const currentStickerCount = interaction.guild.stickers.cache.size;
+    const currentStickers = interaction.guild.stickers.cache;
+    const currentStickerCount = currentStickers.size;
 
     if (currentStickerCount >= stickerLimit) {
       return interaction.editReply({
@@ -66,7 +71,7 @@ export async function handleCloneSticker(interaction) {
     }
 
     // Check if sticker already exists
-    const existingSticker = interaction.guild.stickers.cache.find(s => s.name === sticker.name);
+    const existingSticker = currentStickers.find(s => s.name === sticker.name);
     if (existingSticker) {
       return interaction.editReply({
         embeds: [createErrorEmbed(`A sticker named **${sticker.name}** already exists in this server.`)]
@@ -75,7 +80,7 @@ export async function handleCloneSticker(interaction) {
 
     await interaction.editReply({
       embeds: [createEmbed({
-        title: 'Processing',
+        title: `${EMOJIS.PROCESSING} Processing`,
         description: `Cloning sticker: **${sticker.name}**`,
         timestamp: true
       })]
