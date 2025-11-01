@@ -1,6 +1,29 @@
 import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { CONFIG } from '../config.js';
 
+function getEmoji(name) {
+  const emojiId = CONFIG.BOT_EMOJIS[name];
+  if (!emojiId) return '';
+  
+  const animatedEmojis = ['02_bubbles', '02_butterfly', '002_pinkHeartbubble3', '002_pink', '__', 'farm_1Question', '004star', 'a02_bouncecat', 'a02_bouncekitten', 'a02_bouncerabbit', 'a4_april_plant2', '9_heart5', '9_heart1', '1_rainbow', '4_mail', '4_heart_hands'];
+  const isAnimated = animatedEmojis.includes(name);
+  
+  return `<${isAnimated ? 'a' : ''}:${name}:${emojiId}>`;
+}
+
+export const EMOJIS = {
+  SUCCESS: getEmoji('002_check'),
+  ERROR: getEmoji('002_deny'),
+  WARNING: getEmoji('002_pinkinfo'),
+  INFO: getEmoji('02_bubbles'),
+  PROCESSING: getEmoji('02_butterfly'),
+  QUESTION: getEmoji('farm_1Question'),
+  YES: getEmoji('farm_1Yes'),
+  NO: getEmoji('farm_1No'),
+  STAR: getEmoji('004star'),
+  HEART: getEmoji('pp_heart')
+};
+
 export function createEmbed(options = {}) {
   const embed = new EmbedBuilder()
     .setColor(CONFIG.EMBED_COLOR);
@@ -19,7 +42,7 @@ export function createEmbed(options = {}) {
 
 export function createSuccessEmbed(description, title = 'Success') {
   return createEmbed({
-    title,
+    title: `${EMOJIS.SUCCESS} ${title}`,
     description,
     timestamp: true
   });
@@ -27,7 +50,7 @@ export function createSuccessEmbed(description, title = 'Success') {
 
 export function createErrorEmbed(description, title = 'Error') {
   return createEmbed({
-    title,
+    title: `${EMOJIS.ERROR} ${title}`,
     description,
     timestamp: true
   });
@@ -35,7 +58,7 @@ export function createErrorEmbed(description, title = 'Error') {
 
 export function createWarningEmbed(description, title = 'Warning') {
   return createEmbed({
-    title,
+    title: `${EMOJIS.WARNING} ${title}`,
     description,
     timestamp: true
   });
@@ -43,7 +66,7 @@ export function createWarningEmbed(description, title = 'Warning') {
 
 export function createInfoEmbed(description, title = 'Information') {
   return createEmbed({
-    title,
+    title: `${EMOJIS.INFO} ${title}`,
     description,
     timestamp: true
   });
