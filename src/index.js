@@ -1,5 +1,5 @@
 import { SlashCommandBuilder, REST, Routes, ActivityType } from 'discord.js';
-import { getDiscordClient } from './auth.js';
+import { createDiscordClient, loginClient } from './auth.js';
 import { CONFIG } from './config.js';
 import { handleCloneEmojis } from './commands/cloneEmojis.js';
 import { handleCloneEmoji } from './commands/cloneEmoji.js';
@@ -63,19 +63,35 @@ async function main() {
   try {
     console.log('Starting Rena Discord Bot...');
     
-    const client = await getDiscordClient();
-    console.log('Discord client logged in successfully');
+    const client = createDiscordClient();
 
-    await loadBotEmojis(client);
+    client.on('ready', async () => {
+      console.log(`Bot is ready! Logged in as ${client.user.tag}`);
+      
+      await loadBotEmojis(client);
+      
+      const serverCount = client.guilds.cache.size;
+      const userCount = client.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0);
+      
+      client.user.setPresence({
+        activities: [{
+          name: `${serverCount} servers & ${userCount} users`,
+          type: ActivityType.Watching
+        }],
+        status: 'idle'
+      });
+      
+      console.log(`Serving ${serverCount} servers with ${userCount} total users`);
+      console.log('Status set to idle - Watching servers and users');
 
-    const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_BOT_TOKEN);
-
-    console.log('Registering slash commands...');
-    await rest.put(
-      Routes.applicationCommands(client.user.id),
-      { body: commands }
-    );
-    console.log('Slash commands registered successfully');
+      const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_BOT_TOKEN);
+      console.log('Registering slash commands...');
+      await rest.put(
+        Routes.applicationCommands(client.user.id),
+        { body: commands }
+      );
+      console.log('Slash commands registered successfully');
+    });
 
     client.on('interactionCreate', async interaction => {
       if (!interaction.isChatInputCommand()) return;
@@ -153,24 +169,7 @@ async function main() {
       }
     });
 
-    client.on('ready', () => {
-      console.log(`Bot is ready! Logged in as ${client.user.tag}`);
-      
-      const serverCount = client.guilds.cache.size;
-      const userCount = client.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0);
-      
-      client.user.setPresence({
-        activities: [{
-          name: `${serverCount} servers & ${userCount} users`,
-          type: ActivityType.Watching
-        }],
-        status: 'idle'
-      });
-      
-      console.log(`Serving ${serverCount} servers with ${userCount} total users`);
-      console.log('Status set to idle - Watching servers and users');
-    });
-
+    await loginClient(client);
     console.log('Bot is now running!');
   } catch (error) {
     console.error('Failed to start bot:', error);

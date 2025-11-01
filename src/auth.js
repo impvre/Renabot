@@ -1,12 +1,6 @@
 import { Client, GatewayIntentBits } from 'discord.js';
 
-export async function getDiscordClient() {
-  const token = process.env.DISCORD_BOT_TOKEN;
-
-  if (!token) {
-    throw new Error('DISCORD_BOT_TOKEN environment variable is not set');
-  }
-
+export function createDiscordClient() {
   const client = new Client({
     intents: [
       GatewayIntentBits.Guilds,
@@ -16,6 +10,15 @@ export async function getDiscordClient() {
     ]
   });
 
-  await client.login(token);
   return client;
+}
+
+export async function loginClient(client) {
+  const token = process.env.DISCORD_BOT_TOKEN;
+
+  if (!token) {
+    throw new Error('DISCORD_BOT_TOKEN environment variable is not set');
+  }
+
+  await client.login(token);
 }
