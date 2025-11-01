@@ -5,6 +5,7 @@ import { handleCloneEmojis } from './commands/cloneEmojis.js';
 import { handleCloneEmoji } from './commands/cloneEmoji.js';
 import { handleCloneSticker } from './commands/cloneSticker.js';
 import { handleAddBotEmoji, loadBotEmojis } from './commands/addBotEmoji.js';
+import { EMOJIS } from './utils/embedBuilder.js';
 
 const commands = [
   new SlashCommandBuilder()
@@ -106,23 +107,23 @@ async function main() {
           case 'help':
             const helpEmbed = {
               color: CONFIG.EMBED_COLOR,
-              title: 'Rena - Discord Bot Commands',
-              description: 'Clone emojis and stickers with ease!',
+              title: `${EMOJIS.INFO} Rena - Discord Bot Commands`,
+              description: `${EMOJIS.STAR} Clone emojis and stickers with ease!`,
               fields: [
                 {
-                  name: 'Emoji Commands',
+                  name: `${EMOJIS.HEART} Emoji Commands`,
                   value: '`/cloneemojis <emojis>` - Clone multiple emojis\n`/cloneemoji <emoji>` - Clone a single emoji'
                 },
                 {
-                  name: 'Sticker Commands',
+                  name: `${EMOJIS.HEART} Sticker Commands`,
                   value: '`/clonesticker <sticker>` - Clone a sticker'
                 },
                 {
-                  name: 'Utility',
+                  name: `${EMOJIS.QUESTION} Utility`,
                   value: '`/help` - Show this message\n`/ping` - Check bot latency'
                 },
                 {
-                  name: 'Requirements',
+                  name: `${EMOJIS.WARNING} Requirements`,
                   value: 'Both you and the bot need **Manage Expressions** permission'
                 }
               ],
@@ -135,7 +136,7 @@ async function main() {
             const latency = Date.now() - interaction.createdTimestamp;
             const apiLatency = Math.round(client.ws.ping);
             await interaction.reply({
-              content: `Pong! Latency: ${latency}ms | API: ${apiLatency}ms`,
+              content: `${EMOJIS.SUCCESS} Pong! Latency: ${latency}ms | API: ${apiLatency}ms`,
               ephemeral: true
             });
             break;
