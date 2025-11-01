@@ -25,16 +25,16 @@ Rena is a Discord bot designed to clone custom emojis and stickers with ease. Th
 /
 ├── src/
 │   ├── index.js                    # Main bot file
-│   ├── auth.js                     # Discord authentication via Replit integration
+│   ├── auth.js                     # Discord authentication
 │   ├── config.js                   # Bot configuration (colors, owner ID, emojis)
+│   ├── botEmojis.json              # 54 custom bot emojis
 │   ├── utils/
-│   │   └── embedBuilder.js         # Embed creation utilities
+│   │   └── embedBuilder.js         # Embed creation with custom emoji support
 │   └── commands/
-│       ├── stealEmojis.js          # Emoji stealing logic
-│       ├── stealStickers.js        # Sticker stealing logic
-│       └── addBotEmoji.js          # Bot emoji management
-├── data/
-│   └── customEmojis.json           # Stored custom emojis
+│       ├── cloneEmoji.js           # Single emoji cloning
+│       ├── cloneEmojis.js          # Bulk emoji cloning (up to 50)
+│       ├── cloneSticker.js         # Sticker cloning
+│       └── addBotEmoji.js          # Bot emoji management (owner only)
 └── package.json
 ```
 
@@ -42,6 +42,12 @@ Rena is a Discord bot designed to clone custom emojis and stickers with ease. Th
 Set the `OWNER_ID` environment variable to your Discord user ID to use admin commands.
 
 ## Recent Changes
+- **November 1, 2025**: Major bug fixes and custom emoji integration
+  - Fixed sticker cloning: Now uses `StickerType.Standard` check instead of `guildId` to properly detect custom vs default stickers
+  - Fixed emoji capacity checking: All clone commands now use `guild.emojis.fetch()` for accurate capacity calculations
+  - Fixed emoji limits: Properly accounts for static vs animated emoji limits separately
+  - Added custom emojis to ALL embeds: Success (✓), Error (✗), Warning (ℹ), Info (🔵), Processing (🦋)
+  - Centralized emoji management in embedBuilder.js with EMOJIS helper
 - **November 1, 2025**: Successfully imported project to Replit environment
   - Reconstructed corrupted index.js file
   - Installed discord.js v14.23.2
